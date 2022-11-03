@@ -1,0 +1,74 @@
+1. console 3개
+>mongod --configsvr --replSet replica --dbpath d:\mongodb\config1 --port 40001
+>mongod --configsvr --replSet replica --dbpath d:\mongodb\config2 --port 40002
+>mongod --configsvr --replSet replica --dbpath d:\mongodb\config3 --port 40003
+
+2. console
+>mongo --port 40001
+>config={_id : "replica" ,
+  members : [{_id : 0 , host:"localhost:40001"},{_id : 1 , host:"localhost:40002"},{_id : 2 , host:"localhost:40003"}]}
+>rs.initiate(config)
+
+3. console 3개
+>mongod --shardsvr --replSet shardSet1 --dbpath d:\mongodb\db1 --port 30001
+>mongod --shardsvr --replSet shardSet2 --dbpath d:\mongodb\db2 --port 30002
+>mongod --shardsvr --replSet shardSet3 --dbpath d:\mongodb\db3 --port 30003
+
+4. console
+>mongo --port 30001
+>config={_id : "shardSet1" ,  members : [{_id : 0 , host:"localhost:30001"}]}
+>rs.initiate(config)
+
+>mongo --port 30002
+>config={_id : "shardSet2" ,  members : [{_id : 0 , host:"localhost:30002"}]}
+>rs.initiate(config)
+
+>mongo --port 30003
+>config={_id : "shardSet3" ,  members : [{_id : 0 , host:"localhost:30003"}]}
+>rs.initiate(config)
+
+5.
+>mongos --configdb replica/localhost:40001,localhost:40002,localhost:40003 --port 27077
+
+6. console
+>mongo --port 27077
+>use admin
+mongos > sh.addShard("shardSet1/localhost:30001")
+mongos > sh.addShard("shardSet2/localhost:30002")
+mongos > sh.addShard("shardSet3/localhost:30003")
+
+>use emp
+> db.programmer.createIndex({_id:1});
+>sh.status()
+
+
+mongos > sh.enableSharding("emp")
+mongos>sh.shardCollection("emp.programmer",{ _id : "hashed" }) 
+>sh.status()  
+
+use emp
+db.programmer.getShardDistribution()
+
+use emp
+mongos > for( var i=0; i<100000;i++){db.programmer.insert( { name : "sudat"+i})}
+
+use emp
+db.programmer.count() 
+
+db.programmer.getShardDistribution()
+------------------
+각 서버로 들어가서 확인하기
+>mongo --port 30001
+> use emp
+>db.programmer.count()
+
+끊고
+>mongo --port 30002
+> use emp
+>db.programmer.count()
+
+끊고
+>mongo --port 30003
+> use emp
+>db.programmer.count()
+

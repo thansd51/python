@@ -1,0 +1,7 @@
+pip install pymysql
+
+연결 : connect()
+객체생성 : cursor()
+질의문 전달 : execute()
+실행 : commit()
+select한 결과를 가져옴: fetchone(), fetchall()
